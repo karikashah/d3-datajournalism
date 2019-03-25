@@ -63,8 +63,20 @@ d3.csv("static/data/data.csv").then(function(phData) {
     .append("circle")
     .attr("cx", d => xLinearScale(d.poverty))
     .attr("cy", d => yLinearScale(d.healthcare))
-    .attr("r", "15")
+    .attr("r", "11")
     .attr("fill", "blue")
+    .attr("opacity", ".5");
+
+    var circlesGroup = chartGroup.selectAll("label")
+    .data(phData)
+    .enter()
+    .append("text")
+    .text(d  => d.abbr)
+    .attr("x", d => xLinearScale(d.poverty)-5)
+    .attr("y", d => yLinearScale(d.healthcare)+4)
+    .attr("font-size",9)
+    .attr("font-weight", "bold")
+    .attr("fill", "white")
     .attr("opacity", ".5");
 
     // Step 6: Initialize tool tip
