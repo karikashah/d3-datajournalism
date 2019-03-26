@@ -25,8 +25,19 @@ d3.csv("static/data/data.csv").then(function(phData) {
     // Step 1: Parse Data/Cast (change string (from CSV) into number format)
     // =========================================================================
     phData.forEach(function(data) {
-        data.poverty = parseInt(data.poverty);
-        data.healthcare = parseInt(data.healthcare);
+      // Getting separate sets  
+      // Set 1: Poverty Vs Healthcare
+      data.poverty = parseInt(data.poverty);
+      data.healthcare = parseInt(data.healthcare);
+      
+      // Set 2: Age Vs Smoke
+      data.age = parseInt(data.age);
+      data.smokes = parseInt(data.smokes);
+
+      // Set 3: Household Incomes Vs Obese
+      data.income = parseInt(data.income);
+      data.obesity = parseInt(data.obesity);
+
     });
 
     console.log(`Total data length is ${phData.length}.`);
@@ -34,11 +45,11 @@ d3.csv("static/data/data.csv").then(function(phData) {
     // Step 2: Create scale functions
     // ==============================
     var xLinearScale = d3.scaleLinear()
-      .domain([10, d3.max(phData, d => d.poverty)])
+      .domain([8, d3.max(phData, d => d.poverty)])
       .range([0, width]);
 
     var yLinearScale = d3.scaleLinear()
-      .domain([6, d3.max(phData, d => d.healthcare)])
+      .domain([3, d3.max(phData, d => d.healthcare)])
       .range([height, 0]);
 
     // Step 3: Create axis functions
@@ -64,7 +75,7 @@ d3.csv("static/data/data.csv").then(function(phData) {
     .attr("cx", d => xLinearScale(d.poverty))
     .attr("cy", d => yLinearScale(d.healthcare))
     .attr("r", "11")
-    .attr("fill", "blue")
+    .attr("fill", "red")
     .attr("opacity", ".5");
 
     var circlesGroup = chartGroup.selectAll("label")
@@ -74,19 +85,21 @@ d3.csv("static/data/data.csv").then(function(phData) {
     .text(d  => d.abbr)
     .attr("x", d => xLinearScale(d.poverty)-5)
     .attr("y", d => yLinearScale(d.healthcare)+4)
-    .attr("font-size",9)
+    .attr("font-size",10)
     .attr("font-weight", "bold")
-    .attr("fill", "white")
+    .attr("fill", "black")
     .attr("opacity", ".5");
 
     // Step 6: Initialize tool tip
     // ==============================
     var toolTip = d3.tip()
-      .attr("class", "tooltip")
+      .attr("class", "d3-tip")
       .offset([80, -60])
       .html(function(d) {
         return (`${d.state}<br>In Poverty: ${d.poverty} % <br>Lacks Healthcare: ${d.healthcare} %`);
-      });
+      })
+      .attr("font-weight", "bold")
+      .attr("fill", "black");
 
     // Step 7: Create tooltip in the chart
     // ==============================
@@ -106,14 +119,18 @@ d3.csv("static/data/data.csv").then(function(phData) {
     chartGroup.append("text")
       .attr("transform", "rotate(-90)")
       .attr("y", 0 - margin.left + 40)
-      .attr("x", 0 - (height / 2))
+      .attr("x", 0 - (height / 1.5))
       .attr("dy", "1em")
       .attr("class", "axisText")
+      .attr("font-size",15)
+      .attr("font-weight", "bold")
       .text("Lacks Healthcare (%)");
 
     chartGroup.append("text")
-      .attr("transform", `translate(${width / 2}, ${height + margin.top + 30})`)
+      .attr("transform", `translate(${width/2.5}, ${height + margin.top + 30})`)
       .attr("class", "axisText")
+      .attr("font-size",15)
+      .attr("font-weight", "bold")
       .text("In Poverty (%)");
 });
 
