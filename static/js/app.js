@@ -179,36 +179,37 @@ d3.csv("static/data/data.csv").then(function(completeData) {
       toolTip.hide(data);
   });
   
-  // Step 11: Create axes labels (y-axis)
+  // Step 11: Create axes labels default 
   //=====================================
+  // for (y-axis)
   chartGroup.append("text")
     .attr("transform", "rotate(-90)")
-    .attr("y", 0 - margin.left + 45)
-    .attr("x", 0 - (height / 1.5))
+    .attr("y", 0 - margin.left + 35)
+    .attr("x", 0 - (height / 2))
     .attr("dy", "1em")
     .attr("font-size",10)
     .attr("font-weight", "bold")
-    .attr("class", "axis-text")
+    .attr("class", "yaxis-text active")
     .attr("data-yaxis-name", "healthcare")
     .text("Lacks Healthcare (%)");
   
   chartGroup.append("text")
     .attr("transform", "rotate(-90)")
     .attr("y", 0 - margin.left + 30)
-    .attr("x", 0 - (height / 1.5))
+    .attr("x", 0 - (height / 2))
     // This axis label is inactive by default
     .attr("font-size", 10)
-    .attr("class", "axis-text inactive")
+    .attr("class", "yaxis-text inactive")
     .attr("data-yaxis-name", "smokes")
     .text("Smokes (%)");
   
   chartGroup.append("text")
     .attr("transform", "rotate(-90)")
     .attr("y", 0 - margin.left + 15)
-    .attr("x", 0 - (height / 1.5))
+    .attr("x", 0 - (height / 2))
     // This axis label is inactive by default
     .attr("font-size", 10)
-    .attr("class", "axis-text inactive")
+    .attr("class", "yaxis-text inactive")
     .attr("data-yaxis-name", "obesity")
     .text("Obese (%)");
   
@@ -217,7 +218,7 @@ d3.csv("static/data/data.csv").then(function(completeData) {
     .attr("transform", `translate(${width/2.5}, ${height + margin.top + 10})`)
     .attr("font-size", 10)
     .attr("font-weight", "bold")
-    .attr("class", "axis-text")
+    .attr("class", "xaxis-text active")
     .attr("data-xaxis-name", "poverty")
     .text("In Poverty (%)");
   
@@ -225,7 +226,7 @@ d3.csv("static/data/data.csv").then(function(completeData) {
     .attr("transform", `translate(${width/2.5}, ${height + margin.top + 25})`)
     // This axis label is inactive by default
     .attr("font-size", 10)
-    .attr("class", "axis-text inactive")
+    .attr("class", "xaxis-text inactive")
     .attr("data-xaxis-name", "age")
     .text("Age (Median)");
   
@@ -233,15 +234,19 @@ d3.csv("static/data/data.csv").then(function(completeData) {
     .attr("transform", `translate(${width/2.5}, ${height + margin.top + 40})`)
     // This axis label is inactive by default
     .attr("font-size", 10)
-    .attr("class", "axis-text inactive")
+    .attr("class", "xaxis-text inactive")
     .attr("data-xaxis-name", "income")
     .text("Household Income (Median)");
   
+  // Step 12: Handle the on.click change of axis & its display
+  //==============================================================
   // Change an axis's status from inactive to active when clicked (if it was inactive)
   // Change the status of all active axes to inactive otherwise
-  function labelChange(clickedAxis) {
+
+  // for Y-axis (make current active & active labels => inactive)
+  function labelYChange(clickedAxis) {
     d3
-      .selectAll(".axis-text")
+      .selectAll(".yaxis-text")
       .filter(".active")
       .classed("active", false)
       .classed("inactive", true);
@@ -249,35 +254,75 @@ d3.csv("static/data/data.csv").then(function(completeData) {
     clickedAxis.classed("inactive", false).classed("active", true);
   }
 
-  d3.selectAll(".axis-text").on("click", function() {
+  // for changes in y-axis selection
+  d3.selectAll(".yaxis-text").on("click", function() {
     var clickedSelection = d3.select(this);
-    
     var isClickedSelectionInactive = clickedSelection.classed("inactive");
-    
-    var clickedXAxis = clickedSelection.attr("data-xaxis-name");
     var clickedYAxis = clickedSelection.attr("data-yaxis-name");
-    // Handling cases where other axis is null (since only one axis is clicked at a given time), 
-    // hence re-assigning it to current selection
-    console.log("before clickedXAxis",clickedXAxis);
-    console.log("before clickedYAxis",clickedYAxis);
-    if (clickedXAxis == null)
-      clickedXAxis = currentAxisLabelX;
-    if (clickedYAxis == null)
-      clickedYAxis = currentAxisLabelY;
-    console.log("after clickedXAxis",clickedXAxis);
-    console.log("after clickedYAxis",clickedYAxis);
-    console.log("currentAxisLabelX",currentAxisLabelX);
-    console.log("currentAxisLabelY",currentAxisLabelY);
-
+    
     if (isClickedSelectionInactive) {
-      currentAxisLabelX = clickedXAxis;
       currentAxisLabelY = clickedYAxis;
       console.log("in if currentAxisLabelX",currentAxisLabelX);
       console.log("in if currentAxisLabelY",currentAxisLabelY);
       findMinAndMax(currentAxisLabelX, currentAxisLabelY);
       // Set the domain for the x-axis
-      xLinearScale.domain([xMin, xMax]);
       yLinearScale.domain([yMin, yMax]);
+      // Create a transition effect for the x-axis
+      svg
+        .select(".y-axis")
+        .transition()
+        .duration(1800)
+        .call(leftAxis);
+
+      // Select all circles to create a transition effect, then relocate its horizontal location
+      // based on the new axis that was selected/clicked
+      d3.selectAll("circle").each(function() {
+        d3
+          .select(this)
+          .transition()
+          .attr("cy", function(data, index) {
+            return yLinearScale(data[currentAxisLabelY]);
+          })
+          .duration(1800);
+      });
+
+      d3.selectAll(".stateText").each(function() {
+        d3
+          .select(this)
+          .transition()
+          .attr("y", function(data, index) {
+            return yLinearScale(data[currentAxisLabelY]);
+          })
+          .duration(1800);
+      });
+
+      // Change the status of the axes. See above for more info on this function.
+      labelYChange(clickedSelection);
+    }
+  });
+
+  // for x-axis (make current active & active labels => inactive)
+  function labelXChange(clickedAxis) {
+    d3
+      .selectAll(".xaxis-text")
+      .filter(".active")
+      .classed("active", false)
+      .classed("inactive", true);
+
+    clickedAxis.classed("inactive", false).classed("active", true);
+  }
+
+  // for changes in x-axis selection
+  d3.selectAll(".xaxis-text").on("click", function() {
+    var clickedSelection = d3.select(this);
+    var isClickedSelectionInactive = clickedSelection.classed("inactive");
+    var clickedXAxis = clickedSelection.attr("data-xaxis-name");
+    
+    if (isClickedSelectionInactive) {
+      currentAxisLabelX = clickedXAxis;
+      findMinAndMax(currentAxisLabelX, currentAxisLabelY);
+      // Set the domain for the x-axis
+      xLinearScale.domain([xMin, xMax]);
       // Create a transition effect for the x-axis
       svg
         .select(".x-axis")
@@ -294,9 +339,6 @@ d3.csv("static/data/data.csv").then(function(completeData) {
           .attr("cx", function(data, index) {
             return xLinearScale(data[currentAxisLabelX]);
           })
-          .attr("cy", function(data, index) {
-            return yLinearScale(data[currentAxisLabelY]);
-          })
           .duration(1800);
       });
 
@@ -307,14 +349,11 @@ d3.csv("static/data/data.csv").then(function(completeData) {
           .attr("x", function(data, index) {
             return xLinearScale(data[currentAxisLabelX]);
           })
-          .attr("y", function(data, index) {
-            return yLinearScale(data[currentAxisLabelY]);
-          })
           .duration(1800);
       });
 
       // Change the status of the axes. See above for more info on this function.
-      labelChange(clickedSelection);
+      labelXChange(clickedSelection);
     }
   });
 });
