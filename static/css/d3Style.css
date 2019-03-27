@@ -4,6 +4,13 @@
   text-anchor: middle;
 }
 
+.axis-text {
+  font-family: sans-serif;
+  font-weight: bold;
+  fill: black;
+  text-anchor: middle;
+}
+
 .active {
   font-weight: bold;
   fill: #000;
@@ -26,8 +33,11 @@
 /* font size dependent on radius, see app.js */
 .stateText {
   font-family: sans-serif;
-  fill: #fff;
+  fill: black;
   text-anchor: middle;
+  font-size: 2;
+  /* font-weight: "bold"; */
+  opacity: ".5";
 }
 
 .stateCircle {
